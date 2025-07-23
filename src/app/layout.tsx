@@ -8,12 +8,21 @@ import StarCursor from '@/components/star-cursor';
 import { AnimatePresence, motion } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
+import { useEffect, useState } from 'react';
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1024);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   return (
     <html lang="en" className="dark">
@@ -27,18 +36,22 @@ export default function RootLayout({
       <body className="font-body antialiased bg-background text-foreground">
         <StarCursor />
         <Header />
-        <AnimatePresence mode="wait">
-          <motion.main
-            key={pathname}
-            initial={{ opacity: 0, filter: 'blur(5px)' }}
-            animate={{ opacity: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, filter: 'blur(5px)' }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className="flex-1"
-          >
-            {children}
-          </motion.main>
-        </AnimatePresence>
+        {isDesktop ? (
+          <AnimatePresence mode="wait">
+            <motion.main
+              key={pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="flex-1"
+            >
+              {children}
+            </motion.main>
+          </AnimatePresence>
+        ) : (
+          <main className="flex-1">{children}</main>
+        )}
         <Footer />
         <Toaster />
       </body>
